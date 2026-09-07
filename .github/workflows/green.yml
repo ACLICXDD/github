@@ -1,8 +1,9 @@
-name: Daily Empty Commit
+name: Random Daily Commits
 
 on:
   schedule:
-    - cron: '0 12 * * *'
+    # This checks 4 times a day (every 6 hours)
+    - cron: '0 */6 * * *'
   workflow_dispatch:
 
 jobs:
@@ -12,13 +13,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Randomize Commit Decision
+        id: check
+        run: |
+          # Generates a random number between 1 and 100
+          NUM=$((1 + RANDOM % 100))
+          echo "Random number is $NUM"
+          
+          # 60% chance to commit, 40% chance to skip
+          if [ $NUM -le 60 ]; then
+            echo "should_commit=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_commit=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Make an empty commit
+        if: steps:check.outputs.should_commit == 'true'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git commit --allow-empty -m "Daily green square automation"
+          git commit --allow-empty -m "Update docs and fixes"
 
       - name: Push changes back to GitHub
+        if: steps:check.outputs.should_commit == 'true'
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
