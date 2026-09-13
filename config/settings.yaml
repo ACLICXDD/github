@@ -1,0 +1,5 @@
+settings:
+  debug: true
+  verbose: false
+  timeout: 30
+  version: 1.0.0
